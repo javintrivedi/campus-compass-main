@@ -4,6 +4,8 @@ const fs = require("fs");
 const csv = require("csv-parser");
 const multer = require("multer");
 const client = require("prom-client");
+const helmet = require("helmet");
+const cors = require("cors");
 
 // Setup default prometheus metrics (e.g. CPU, memory)
 const collectDefaultMetrics = client.collectDefaultMetrics;
@@ -40,6 +42,8 @@ if (!fs.existsSync(uploadDir)) {
 app.set("trust proxy", 1);
 
 // Middleware
+app.use(helmet());
+app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
