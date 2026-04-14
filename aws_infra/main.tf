@@ -41,7 +41,9 @@ resource "aws_security_group" "campus_compass_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    # SECURITY: Restricted SSH access to prevent global brute-force attempts.
+    # In a production environment, this should be limited to the developers' specific IP addresses.
+    cidr_blocks = ["10.0.0.0/8"]
   }
 
   ingress {

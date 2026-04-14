@@ -40,7 +40,8 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-app.set("trust proxy", 1);
+// Security Middleware
+app.set("trust proxy", "loopback"); // Strictly trust loopback for local k3s setup
 
 // Middleware
 app.use(helmet());
@@ -89,7 +90,13 @@ app.post("/add-student", (req, res) => {
     // Sanitize name (remove potential HTML/script tags)
     const sanitizedName = name.replace(/<[^>]*>?/gm, "").trim();
     
-    const student = { name: sanitizedName, ...otherDetails };
+    // Mass Assignment Fix: Explicitly define properties
+    const student = {
+      name: sanitizedName,
+      student_id: otherDetails.student_id ? String(otherDetails.student_id) : undefined,
+      email: otherDetails.email ? String(otherDetails.email) : undefined
+    };
+    
     students.push(student);
     res.json({ message: "Student Added", total: students.length });
   } catch (err) {
