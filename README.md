@@ -20,6 +20,7 @@ Campus Compass is a full-stack student management portal demonstrating a complet
 -   **Configuration Management**: Ansible
 -   **CI/CD**: GitHub Actions
 -   **Monitoring**: Prometheus, Grafana
+-   **Security**: SonarCloud (SaaS)
 
 ## Architecture Overview
 
@@ -37,7 +38,8 @@ The project is structured to demonstrate a modern DevOps workflow:
     -   `prometheus.yaml`: Deploys a Prometheus instance configured to scrape metrics from the application.
     -   `grafana.yaml`: Deploys Grafana with Prometheus pre-configured as a data source and includes a custom dashboard for application monitoring.
 
-5.  **`.github/workflows/`**: GitHub Actions workflows automate the CI/CD process. The `deploy.yml` workflow triggers on a push to the `main` branch, syncs files to the EC2 instance, builds the Docker image on the remote server, imports it into K3s, and applies the Kubernetes manifests to deploy the latest version.
+5.  **`.github/workflows/`**: GitHub Actions workflows automate the CI/CD process.
+    -   `deploy.yml`: Triggers on a push to the `main` branch. It first runs a **SonarCloud Scan** for security analysis, then syncs files to the EC2 instance, builds the Docker image on the remote server, imports it into K3s, and applies the Kubernetes manifests to deploy the latest version.
 
 ## Deployment Guide
 
@@ -92,6 +94,7 @@ You can deploy the application manually using Terraform and Ansible or automatic
 3.  **Configure GitHub Secrets**: In your forked repository, go to `Settings > Secrets and variables > Actions` and add the following repository secrets:
     -   `EC2_HOST`: The public IP address of your EC2 instance.
     -   `EC2_SSH_KEY`: The private key content from `~/.ssh/campus_compass_key`.
+    -   `SONAR_TOKEN`: The analysis token generated from your SonarCloud account.
 
 4.  **Trigger Deployment**: Push a commit to the `main` branch. The `deploy.yml` workflow will automatically run, deploying the application to your server.
 
