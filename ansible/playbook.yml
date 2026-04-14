@@ -1,0 +1,62 @@
+- name: Configure EC2 for DevOps App
+  hosts: ec2
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install required dependencies
+      apt:
+        name:
+          - curl
+          - apt-transport-https
+          - ca-certificates
+          - software-properties-common
+        state: present
+
+    - name: Install Docker
+      shell: curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
+      args:
+        creates: /usr/bin/docker
+
+    - name: Install K3s (Lightweight Kubernetes)
+      shell: curl -sfL https://get.k3s.io | sh -
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Create directories for the app
+      file:
+        path: /opt/campus-compass
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Copy project files to EC2
+      become: no
+      synchronize:
+        src: "{{ playbook_dir | dirname }}/"
+        dest: /opt/campus-compass
+        rsync_opts:
+          - "--exclude=.git"
+          - "--exclude=node_modules"
+          - "--exclude=terraform*"
+          - "--exclude=.terraform*"
+          - "--exclude=aws_infra/"
+          - "--exclude=aws_credentials.env"
+
+    - name: Build Docker Image on Server
+      become: yes
+      shell: docker build -t campus-compass:latest /opt/campus-compass
+      args:
+        chdir: /opt/campus-compass
+
+    - name: Export Docker image to K3s containerd
+      become: yes
+      shell: docker save campus-compass:latest | k3s ctr images import -
+      
+    - name: Deploy Kubernetes Manifests
+      become: yes
+      shell: kubectl apply -f /opt/campus-compass/k8s/
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml

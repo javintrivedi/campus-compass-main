@@ -1,0 +1,20 @@
+node_modules/
+.env
+
+# Terraform
+.terraform/
+.terraform.*
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+
+# Mac
+.DS_Store
+
+# Archives
+*.tar.gz
+*.zip
+
+# Backend User Uploads (CSV files)
+backend/uploads/
+aws_credentials.env

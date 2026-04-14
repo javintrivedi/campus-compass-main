@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Compass</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">🧭</span>
+        <span class="logo-text">Campus Compass</span>
+      </div>
+      <div class="header-badge">Student Portal</div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-number" id="stat-total">0</span>
+        <span class="stat-label">Total Students</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-number" id="stat-search-results">—</span>
+        <span class="stat-label">Search Results</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-number">✓</span>
+        <span class="stat-label">System Online</span>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <!-- Add Student Card -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">👤</span>
+          <div>
+            <h2 class="card-title">Add Student</h2>
+            <p class="card-subtitle">Register a new student manually</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="input-group">
+            <label class="input-label" for="name">Student Name</label>
+            <input id="name" class="input" placeholder="e.g. Javin Trivedi" />
+          </div>
+          <button class="btn btn-primary" id="add-btn" onclick="addStudent()">
+            <span>Add Student</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Upload CSV Card -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📁</span>
+          <div>
+            <h2 class="card-title">Upload CSV</h2>
+            <p class="card-subtitle">Bulk import student records</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="file-drop" id="file-drop" onclick="document.getElementById('file').click()">
+            <span class="file-drop-icon">⬆️</span>
+            <span class="file-drop-text" id="file-drop-text">Click to select a CSV file</span>
+            <input type="file" id="file" accept=".csv" style="display:none" onchange="onFileSelected(this)">
+          </div>
+          <p class="help-text">Columns: name, student_id, email, department, gpa, major, phone, year &nbsp;·&nbsp; <a href="sample-students.csv" download class="link">Download Sample</a></p>
+          <button class="btn btn-primary" onclick="uploadCSV()">
+            <span>Upload CSV</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search Card -->
+      <div class="card card-wide">
+        <div class="card-header">
+          <span class="card-icon">🔍</span>
+          <div>
+            <h2 class="card-title">Search Students</h2>
+            <p class="card-subtitle">Find student records instantly</p>
+          </div>
+        </div>
+        <div class="card-body search-body">
+          <div class="input-group search-input-group">
+            <label class="input-label" for="search">Search by Name</label>
+            <input id="search" class="input" placeholder="e.g. Javin Trivedi" onkeydown="if(event.key==='Enter') searchStudent()" />
+          </div>
+          <div class="search-actions">
+            <button class="btn btn-primary" onclick="searchStudent()">Search</button>
+            <button class="btn btn-secondary" onclick="getStudents()">Show All</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Results Table -->
+    <div class="results-section" id="results-section" style="display:none">
+      <div class="results-header">
+        <h3 class="results-title">Student Records</h3>
+        <span class="results-count" id="results-count">0 results</span>
+      </div>
+      <div class="table-wrapper">
+        <table class="table" id="student-table">
+          <thead id="table-head"></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="empty-state" style="display:none">
+        <span style="font-size:3rem">🔍</span>
+        <p>No students found. Try a different search.</p>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+  </main>
+
+  <footer class="footer">
+    <p>Campus Compass · Powered by Node.js, Docker & Kubernetes on AWS</p>
+  </footer>
+
+  <script>
+    // Toast notification
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast toast-${type} show`;
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // File input label
+    function onFileSelected(input) {
+      const text = document.getElementById('file-drop-text');
+      text.textContent = input.files[0] ? `📄 ${input.files[0].name}` : 'Click to select a CSV file';
+    }
+
+    // Add student
+    async function addStudent() {
+      const nameInput = document.getElementById('name');
+      const name = nameInput.value.trim();
+      if (!name) { showToast('Please enter a student name', 'error'); return; }
+      const btn = document.getElementById('add-btn');
+      btn.disabled = true; btn.querySelector('span').textContent = 'Adding…';
+      try {
+        await fetch('/add-student', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+        showToast('Student added successfully ✅');
+        nameInput.value = '';
+        getStudents();
+      } catch (err) {
+        showToast('Error adding student', 'error');
+      } finally {
+        btn.disabled = false; btn.querySelector('span').textContent = 'Add Student';
+      }
+    }
+
+    // Upload CSV
+    async function uploadCSV() {
+      const fileInput = document.getElementById('file');
+      const file = fileInput.files[0];
+      if (!file) { showToast('Please select a CSV file', 'error'); return; }
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        await fetch('/upload-csv', { method: 'POST', body: formData });
+        showToast('CSV uploaded successfully ✅');
+        fileInput.value = '';
+        document.getElementById('file-drop-text').textContent = 'Click to select a CSV file';
+        getStudents();
+      } catch (err) {
+        showToast('Upload error: ' + err.message, 'error');
+      }
+    }
+
+    // Get all students
+    async function getStudents() {
+      try {
+        const res = await fetch('/students');
+        const data = await res.json();
+        document.getElementById('stat-search-results').textContent = data.length;
+        displayStudents(data);
+      } catch (err) {
+        showToast('Error fetching students', 'error');
+      }
+    }
+
+    // Search student
+    async function searchStudent() {
+      const name = document.getElementById('search').value.trim();
+      if (!name) { showToast('Enter a name to search', 'error'); return; }
+      try {
+        const res = await fetch(`/search?name=${encodeURIComponent(name)}`);
+        const data = await res.json();
+        document.getElementById('stat-search-results').textContent = data.length;
+        displayStudents(data);
+      } catch (err) {
+        showToast('Search error', 'error');
+      }
+    }
+
+    // Display students in a table
+    function displayStudents(data) {
+      const section = document.getElementById('results-section');
+      const thead = document.getElementById('table-head');
+      const tbody = document.getElementById('table-body');
+      const emptyState = document.getElementById('empty-state');
+      const table = document.getElementById('student-table');
+      const count = document.getElementById('results-count');
+
+      section.style.display = 'block';
+      count.textContent = `${data.length} result${data.length !== 1 ? 's' : ''}`;
+
+      if (data.length === 0) {
+        table.style.display = 'none';
+        emptyState.style.display = 'flex';
+        return;
+      }
+
+      table.style.display = 'table';
+      emptyState.style.display = 'none';
+
+      const keys = Object.keys(data[0]);
+      thead.innerHTML = `<tr>${keys.map(k => `<th>${k.replace(/_/g,' ')}</th>`).join('')}</tr>`;
+      tbody.innerHTML = data.map(s =>
+        `<tr>${keys.map(k => `<td>${s[k] || '—'}</td>`).join('')}</tr>`
+      ).join('');
+
+      // Update stat
+      document.getElementById('stat-total').textContent = data.length;
+    }
+
+    // Load students on page load
+    getStudents();
+  </script>
+
+</body>
+</html>

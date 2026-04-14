@@ -1,0 +1,6 @@
+name,student_id,email,department,gpa,major,phone,year
+John Doe,2024001,john.doe@university.edu,Computer Science,3.8,Software Engineering,555-0101,Freshman
+Jane Smith,2024002,jane.smith@university.edu,Computer Science,3.95,Data Science,555-0102,Sophomore
+Alice Johnson,2024003,alice.j@university.edu,Mathematics,3.7,Statistics,555-0103,Junior
+Bob Wilson,2024004,bob.wilson@university.edu,Biology,3.2,Molecular Biology,555-0104,Senior
+Carlos Garcia,2024005,carlos.g@university.edu,Engineering,3.9,Mechanical Engineering,555-0105,Freshman

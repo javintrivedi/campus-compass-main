@@ -1,0 +1,47 @@
+name: CI/CD Pipeline to EC2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to EC2 via SSH and Rsync
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Create working directory if it doesn't exist
+            mkdir -p /opt/campus-compass
+
+      - name: Sync files manually using pure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+          rsync -avz --exclude='.git' --exclude='aws_infra' --exclude='.github' --exclude='terraform*' --delete -e "ssh -o StrictHostKeyChecking=no" ./ ubuntu@${{ secrets.EC2_HOST }}:/opt/campus-compass/
+
+      - name: Build Docker Image & Apply Kubernetes Manfest
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /opt/campus-compass
+            sudo docker build -t campus-compass:latest .
+            sudo docker save campus-compass:latest | sudo k3s ctr images import -
+            export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+            sudo kubectl apply -f k8s/
+            sudo kubectl rollout restart deployment campus-compass
+            sudo kubectl get pods
