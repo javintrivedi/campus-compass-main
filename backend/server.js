@@ -6,6 +6,7 @@ const multer = require("multer");
 const client = require("prom-client");
 const helmet = require("helmet");
 const cors = require("cors");
+const rateLimit = require("express-rate-limit");
 
 // Setup default prometheus metrics (e.g. CPU, memory)
 const collectDefaultMetrics = client.collectDefaultMetrics;
@@ -44,14 +45,32 @@ app.set("trust proxy", 1);
 // Middleware
 app.use(helmet());
 app.use(cors());
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later." }
+});
+app.use(limiter);
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 // File upload setup - more permissive
 const upload = multer({ 
   dest: "uploads/",
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB
-  // Removed strict fileFilter to debug
+  limits: { fileSize: 5 * 1024 * 1024 }, // Reduced to 5MB for security
+  fileFilter: (req, file, cb) => {
+    // Strictly allow only CSV files
+    if (path.extname(file.originalname).toLowerCase() === ".csv") {
+      cb(null, true);
+    } else {
+      cb(new Error("Only .csv files are allowed"));
+    }
+  }
 });
 
 // In-memory database
@@ -60,14 +79,21 @@ let students = [];
 // ➤ Add student manually
 app.post("/add-student", (req, res) => {
   try {
-    const student = req.body;
-    if (!student.name || student.name.trim() === "") {
-      return res.status(400).json({ error: "Student name required" });
+    const { name, ...otherDetails } = req.body;
+    
+    // Improved validation
+    if (!name || typeof name !== "string" || name.trim() === "") {
+      return res.status(400).json({ error: "Valid student name required" });
     }
+    
+    // Sanitize name (remove potential HTML/script tags)
+    const sanitizedName = name.replace(/<[^>]*>?/gm, "").trim();
+    
+    const student = { name: sanitizedName, ...otherDetails };
     students.push(student);
     res.json({ message: "Student Added", total: students.length });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
