@@ -138,3 +138,6 @@ docker run -p 9000:9000 campus-compass
 ## License
 
 This project is licensed under the Business Source License 1.1. See the [LICENSE.txt](LICENSE.txt) file for details.
+
+
+<!-- Triggering CI/CD pipeline to verify SonarCloud integration -->
