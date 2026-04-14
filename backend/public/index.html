@@ -140,8 +140,7 @@
 
   <script>
     // Toast notification
-    function showToast(message, type = 'success') {
-      const toast = document.getElementById('toast');
+      console.error('Toast Error:', message, err);
       toast.textContent = message;
       toast.className = `toast toast-${type} show`;
       setTimeout(() => toast.classList.remove('show'), 3000);
@@ -166,6 +165,7 @@
         nameInput.value = '';
         getStudents();
       } catch (err) {
+        console.error('Add student error:', err);
         showToast('Error adding student', 'error');
       } finally {
         btn.disabled = false; btn.querySelector('span').textContent = 'Add Student';
@@ -198,6 +198,7 @@
         document.getElementById('stat-search-results').textContent = data.length;
         displayStudents(data);
       } catch (err) {
+        console.error('Fetch error:', err);
         showToast('Error fetching students', 'error');
       }
     }
@@ -212,6 +213,7 @@
         document.getElementById('stat-search-results').textContent = data.length;
         displayStudents(data);
       } catch (err) {
+        console.error('Search error:', err);
         showToast('Search error', 'error');
       }
     }
@@ -226,7 +228,8 @@
       const count = document.getElementById('results-count');
 
       section.style.display = 'block';
-      count.textContent = `${data.length} result${data.length !== 1 ? 's' : ''}`;
+      const resultsText = data.length === 1 ? 'result' : 'results';
+      count.textContent = `${data.length} ${resultsText}`;
 
       if (data.length === 0) {
         table.style.display = 'none';
@@ -238,10 +241,21 @@
       emptyState.style.display = 'none';
 
       const keys = Object.keys(data[0]);
-      thead.innerHTML = `<tr>${keys.map(k => `<th>${k.replace(/_/g,' ')}</th>`).join('')}</tr>`;
-      tbody.innerHTML = data.map(s =>
-        `<tr>${keys.map(k => `<td>${s[k] || '—'}</td>`).join('')}</tr>`
-      ).join('');
+      
+      // Fixed: Avoid nested template literals for SonarCloud/Maintainability
+      const headerHtml = keys.map(k => {
+        const title = k.replaceAll('_', ' ');
+        return `<th>${title}</th>`;
+      }).join('');
+      
+      thead.innerHTML = `<tr>${headerHtml}</tr>`;
+      
+      const rowsHtml = data.map(s => {
+        const cells = keys.map(k => `<td>${s[k] ?? '—'}</td>`).join('');
+        return `<tr>${cells}</tr>`;
+      }).join('');
+      
+      tbody.innerHTML = rowsHtml;
 
       // Update stat
       document.getElementById('stat-total').textContent = data.length;
