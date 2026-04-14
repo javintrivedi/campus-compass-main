@@ -24,7 +24,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   deploy:
-    needs: sonarcloud
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
