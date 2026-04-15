@@ -80,5 +80,49 @@
     "phone": "555-0199",
     "year": "Freshman",
     "timestamp": "2026-04-15T18:53:10.511Z"
+  },
+  {
+    "name": "Test Student",
+    "student_id": "TEST001",
+    "email": "test@university.edu",
+    "department": "Computer Science",
+    "major": "Security",
+    "gpa": 3.9,
+    "phone": "555-9999",
+    "year": "Senior",
+    "timestamp": "2026-04-15T20:26:13.502Z"
+  },
+  {
+    "name": "Hacker",
+    "student_id": "HACK001",
+    "email": "",
+    "department": "General",
+    "major": "Undeclared",
+    "gpa": 0,
+    "phone": "",
+    "year": "Freshman",
+    "timestamp": "2026-04-15T20:26:13.505Z"
+  },
+  {
+    "name": "Test Student",
+    "student_id": "TEST001",
+    "email": "test@university.edu",
+    "department": "Computer Science",
+    "major": "Security",
+    "gpa": 3.9,
+    "phone": "555-9999",
+    "year": "Senior",
+    "timestamp": "2026-04-15T20:26:28.903Z"
+  },
+  {
+    "name": "Hacker",
+    "student_id": "HACK001",
+    "email": "",
+    "department": "General",
+    "major": "Undeclared",
+    "gpa": 0,
+    "phone": "",
+    "year": "Freshman",
+    "timestamp": "2026-04-15T20:26:28.906Z"
   }
 ]

@@ -121,33 +121,36 @@ loadData();
 // ➤ Add student manually
 app.post("/add-student", (req, res) => {
   try {
-    const { name, ...otherDetails } = req.body;
+    const { name, student_id, email, department, major, gpa, phone, year } = req.body;
     
-    // Improved validation
-    if (!name || typeof name !== "string" || name.trim() === "") {
-      return res.status(400).json({ error: "Valid student name required" });
+    // Strict Input Validation
+    if (!name || typeof name !== "string" || name.trim().length < 2) {
+      return res.status(400).json({ error: "Full Name (min 2 chars) required" });
     }
     
-    // Sanitize name (remove potential HTML/script tags)
-    const sanitizedName = name.replace(/<[^>]*>?/gm, "").trim();
-    
-    const student = {
-      name: sanitizedName,
-      student_id: otherDetails.student_id ? String(otherDetails.student_id) : `S-${Date.now()}`,
-      email: otherDetails.email || undefined,
-      department: otherDetails.department || undefined,
-      gpa: otherDetails.gpa || undefined,
-      major: otherDetails.major || undefined,
-      phone: otherDetails.phone || undefined,
-      year: otherDetails.year || undefined,
+    const validatedData = {
+      name: name.replace(/<[^>]*>?/gm, "").trim(),
+      student_id: (student_id || `S-${Date.now()}`).toString().trim(),
+      email: (email || "").toString().trim(),
+      department: (department || "General").toString().trim(),
+      major: (major || "Undeclared").toString().trim(),
+      gpa: parseFloat(gpa || 0),
+      phone: (phone || "").toString().trim(),
+      year: (year || "Freshman").toString().trim(),
       timestamp: new Date().toISOString()
     };
     
-    students.push(student);
+    // Validate GPA range
+    if (isNaN(validatedData.gpa) || validatedData.gpa < 0 || validatedData.gpa > 4.0) {
+      validatedData.gpa = 0.0;
+    }
+    
+    students.push(validatedData);
     saveData();
-    res.json({ message: "Student Added", total: students.length });
+    res.status(201).json({ message: "Student Added", total: students.length });
   } catch (err) {
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Add Student Error:", err);
+    res.status(500).json({ error: "System failure during registration" });
   }
 });
 
@@ -223,10 +226,15 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: err.message || "Server error" });
 });
 
-// Start server
-const PORT = process.env.PORT || 9000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Students initial count: ${students.length}`);
-});
+// Export app for testing
+module.exports = app;
+
+// Start server only if run directly
+if (require.main === module) {
+  const PORT = process.env.PORT || 9000;
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Students initial count: ${students.length}`);
+  });
+}
 

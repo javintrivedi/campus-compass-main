@@ -116,15 +116,40 @@ function renderTable(data) {
   if (statSearch) statSearch.textContent = data.length;
   if (countLabel) countLabel.textContent = `${data.length} Records`;
 
+  // Clear previous content safely
+  thead.textContent = '';
+  tbody.textContent = '';
+
   if (data.length === 0) {
-    thead.innerHTML = '';
-    tbody.innerHTML = '<tr><td colspan="100" style="text-align:center;padding:2rem">Zero matches found.</td></tr>';
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = 100;
+    cell.style.textAlign = 'center';
+    cell.style.padding = '2rem';
+    cell.textContent = 'Zero matches found.';
+    row.appendChild(cell);
+    tbody.appendChild(row);
     return;
   }
 
   const keys = Object.keys(data[0]);
-  thead.innerHTML = `<tr>${keys.map(k => `<th>${k.replace('_', ' ')}</th>`).join('')}</tr>`;
-  tbody.innerHTML = data.map(s => `<tr>${keys.map(k => `<td>${s[k] ?? '—'}</td>`).join('')}</tr>`).join('');
+  const headerRow = document.createElement('tr');
+  keys.forEach(key => {
+    const th = document.createElement('th');
+    th.textContent = key.replace('_', ' ');
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+
+  data.forEach(student => {
+    const row = document.createElement('tr');
+    keys.forEach(key => {
+      const td = document.createElement('td');
+      td.textContent = student[key] ?? '—';
+      row.appendChild(td);
+    });
+    tbody.appendChild(row);
+  });
 }
 
 function updateCharts() {
