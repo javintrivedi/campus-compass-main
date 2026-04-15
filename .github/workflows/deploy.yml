@@ -25,6 +25,7 @@ jobs:
       - name: Run Tests with Coverage
         run: |
           cd backend
+          rm -rf coverage .nyc_output
           npm test
           # Correct the lcov paths so SonarCloud (running from root) can find them
           sed -i 's|SF:|SF:backend/|g' coverage/lcov.info

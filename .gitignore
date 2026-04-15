@@ -21,3 +21,8 @@ aws_credentials.env
 backend/server.log
 prometheus.log
 data/
+**/coverage/
+**/.nyc_output/
+*.log
+terraform.tfstate*
+.terraform/
