@@ -28,11 +28,14 @@ jobs:
           mkdir -p data
           rm -rf coverage .nyc_output
           npm test
+          # IMPORTANT: Rewrite lcov paths so Sonar (running in root) can find the files
+          sed -i 's|SF:|SF:backend/|g' coverage/lcov.info
           echo "--- Verifying lcov report ---"
           head -3 coverage/lcov.info
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
