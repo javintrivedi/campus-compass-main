@@ -25,10 +25,11 @@ jobs:
       - name: Run Tests with Coverage
         run: |
           cd backend
+          mkdir -p data
           rm -rf coverage .nyc_output
           npm test
-          echo "--- LCOV Path Check ---"
-          head -5 coverage/lcov.info
+          echo "--- Verifying lcov report ---"
+          head -3 coverage/lcov.info
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v3.0.0
