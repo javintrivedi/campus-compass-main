@@ -24,7 +24,6 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9000
-          hostPort: 9000
         resources:
           requests:
             memory: "128Mi"
@@ -32,3 +31,11 @@ spec:
           limits:
             memory: "256Mi"
             cpu: "200m"
+        volumeMounts:
+        - name: data-storage
+          mountPath: /app/backend/data
+      volumes:
+      - name: data-storage
+        hostPath:
+          path: /Users/admin52/Downloads/campus-compass-main-main/backend/data
+          type: DirectoryOrCreate

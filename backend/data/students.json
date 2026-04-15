@@ -1,0 +1,84 @@
+[
+  {
+    "name": "Final Success",
+    "student_id": "S-1776277985326",
+    "timestamp": "2026-04-15T18:33:05.326Z"
+  },
+  {
+    "name": "John Doe",
+    "student_id": "2024001",
+    "email": "john.doe@university.edu",
+    "department": "Computer Science",
+    "gpa": "3.8",
+    "major": "Software Engineering",
+    "phone": "555-0101",
+    "year": "Freshman"
+  },
+  {
+    "name": "Jane Smith",
+    "student_id": "2024002",
+    "email": "jane.smith@university.edu",
+    "department": "Computer Science",
+    "gpa": "3.95",
+    "major": "Data Science",
+    "phone": "555-0102",
+    "year": "Sophomore"
+  },
+  {
+    "name": "Alice Johnson",
+    "student_id": "2024003",
+    "email": "alice.j@university.edu",
+    "department": "Mathematics",
+    "gpa": "3.7",
+    "major": "Statistics",
+    "phone": "555-0103",
+    "year": "Junior"
+  },
+  {
+    "name": "Bob Wilson",
+    "student_id": "2024004",
+    "email": "bob.wilson@university.edu",
+    "department": "Biology",
+    "gpa": "3.2",
+    "major": "Molecular Biology",
+    "phone": "555-0104",
+    "year": "Senior"
+  },
+  {
+    "name": "Carlos Garcia",
+    "student_id": "2024005",
+    "email": "carlos.g@university.edu",
+    "department": "Engineering",
+    "gpa": "3.9",
+    "major": "Mechanical Engineering",
+    "phone": "555-0105",
+    "year": "Freshman"
+  },
+  {
+    "name": "javin",
+    "student_id": "S-1776278138905",
+    "timestamp": "2026-04-15T18:35:38.905Z"
+  },
+  {
+    "name": "Professional AI Master",
+    "student_id": "AI-2026-99",
+    "email": "master@ai-academy.edu",
+    "department": "Robotics",
+    "gpa": "4.0",
+    "major": "Machine Learning",
+    "phone": "555-9999",
+    "year": "Freshman",
+    "timestamp": "2026-04-15T18:40:06.893Z"
+  },
+  {
+    "name": "Final Verification",
+    "student_id": "2024999",
+    "email": "final@verification.com",
+    "department": "Computer Science",
+    "gpa": "4.0",
+    "major": "AI Verification",
+    "phone": "555-0199",
+    "year": "Freshman",
+    "timestamp": "2026-04-15T18:53:10.511Z"
+  }
+]

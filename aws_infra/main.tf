@@ -11,93 +11,56 @@ provider "aws" {
   region = "us-east-1"
 }
 
-data "aws_ami" "ubuntu" {
-  most_recent = true
+# 1. ECR Repository for the App Image
+resource "aws_ecr_repository" "app" {
+  name                 = "campus-compass-app"
+  image_tag_mutability = "MUTABLE"
+  force_delete         = true
 
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  image_scanning_configuration {
+    scan_on_push = true
   }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["099720109477"] # Canonical
 }
 
-resource "aws_key_pair" "deployer" {
-  key_name   = "campus-compass-key"
-  public_key = file("~/.ssh/campus_compass_key.pub")
+# 2. VPC for ECS Fargate
+resource "aws_vpc" "main" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  tags = { Name = "campus-compass-vpc" }
 }
 
-resource "aws_security_group" "campus_compass_sg" {
-  name        = "campus_compass_sg"
-  description = "Allow inbound traffic for DevOps app"
+resource "aws_subnet" "public_1" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-east-1a"
+  map_public_ip_on_launch = true
+}
 
-  ingress {
-    description = "SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    # SECURITY: Restricted SSH access to prevent global brute-force attempts.
-    # In a production environment, this should be limited to the developers' specific IP addresses.
-    cidr_blocks = ["10.0.0.0/8"]
+resource "aws_internet_gateway" "gw" {
+  vpc_id = aws_vpc.main.id
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.gw.id
   }
+}
+
+resource "aws_route_table_association" "a" {
+  subnet_id      = aws_subnet.public_1.id
+  route_table_id = aws_route_table.public.id
+}
+
+# 3. Security Group for ECS Task
+resource "aws_security_group" "ecs_sg" {
+  name        = "campus-compass-ecs-sg"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
-    description = "App"
     from_port   = 9000
     to_port     = 9000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "K3s API"
-    from_port   = 6443
-    to_port     = 6443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Grafana"
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Grafana NodePort"
-    from_port   = 30000
-    to_port     = 30000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "App NodePort"
-    from_port   = 30009
-    to_port     = 30009
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Prometheus NodePort"
-    from_port   = 30090
-    to_port     = 30090
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "SonarQube NodePort"
-    from_port   = 30091
-    to_port     = 30091
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -110,24 +73,72 @@ resource "aws_security_group" "campus_compass_sg" {
   }
 }
 
-resource "aws_instance" "app_server" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t3.small"
-  key_name      = aws_key_pair.deployer.key_name
+# 4. ECS Cluster
+resource "aws_ecs_cluster" "main" {
+  name = "campus-compass-cluster"
+}
 
-  vpc_security_group_ids = [aws_security_group.campus_compass_sg.id]
+# 5. ECS Task Definition
+resource "aws_ecs_task_definition" "app" {
+  family                   = "campus-compass-task"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = 256
+  memory                   = 512
+  execution_role_arn       = aws_iam_role.ecs_execution_role.arn
 
-  # Allocate slightly more root disk space for Docker and K3s
-  root_block_device {
-    volume_size = 15
-  }
+  container_definitions = jsonencode([
+    {
+      name  = "app"
+      image = "${aws_ecr_repository.app.repository_url}:latest"
+      portMappings = [
+        {
+          containerPort = 9000
+          hostPort      = 9000
+        }
+      ]
+    }
+  ])
+}
 
-  tags = {
-    Name = "CampusCompassDevOps"
+# 6. IAM Role for ECS Execution
+resource "aws_iam_role" "ecs_execution_role" {
+  name = "campus-compass-ecs-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_execution_role_policy" {
+  role       = aws_iam_role.ecs_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# 7. ECS Service
+resource "aws_ecs_service" "main" {
+  name            = "campus-compass-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.app.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets         = [aws_subnet.public_1.id]
+    security_groups = [aws_security_group.ecs_sg.id]
+    assign_public_ip = true
   }
 }
 
-output "instance_public_ip" {
-  description = "Public IP address of the EC2 instance"
-  value       = aws_instance.app_server.public_ip
+output "ecr_repository_url" {
+  value = aws_ecr_repository.app.repository_url
 }

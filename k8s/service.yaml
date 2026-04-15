@@ -5,7 +5,7 @@ metadata:
   labels:
     app: campus-compass
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: campus-compass
   ports:

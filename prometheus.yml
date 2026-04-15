@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'campus_compass_app'
+    static_configs:
+      - targets: ['172.20.10.2:9000']

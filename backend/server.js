@@ -43,8 +43,21 @@ if (!fs.existsSync(uploadDir)) {
 // Security Middleware
 app.set("trust proxy", "loopback"); // Strictly trust loopback for local k3s setup
 
-// Middleware
-app.use(helmet());
+// Configure Helmet for local development
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      "script-src": ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net"],
+      "img-src": ["'self'", "data:", "blob:"],
+      "style-src": ["'self'", "'unsafe-inline'", "fonts.googleapis.com"],
+      "font-src": ["'self'", "fonts.gstatic.com"],
+      "connect-src": ["'self'"],
+      "upgrade-insecure-requests": null, // Disable forced HTTPS upgrade
+    },
+  },
+  hsts: false, // Disabling HSTS to prevent forced HTTPS on local IPs
+}));
 app.use(cors());
 
 // Rate limiting
@@ -74,8 +87,36 @@ const upload = multer({
   }
 });
 
-// In-memory database
+// In-memory database with persistence
+const DATA_PATH = path.join(__dirname, "data", "students.json");
 let students = [];
+
+// Load data from file if exists
+function loadData() {
+  try {
+    if (fs.existsSync(DATA_PATH)) {
+      const data = fs.readFileSync(DATA_PATH, "utf8");
+      students = JSON.parse(data);
+      console.log(`LOADED: ${students.length} students from persistence.`);
+    }
+  } catch (err) {
+    console.error("Error loading data:", err);
+    students = [];
+  }
+}
+
+// Save data to file
+function saveData() {
+  try {
+    fs.writeFileSync(DATA_PATH, JSON.stringify(students, null, 2), "utf8");
+    console.log(`SAVED: ${students.length} students to persistence.`);
+  } catch (err) {
+    console.error("Error saving data:", err);
+  }
+}
+
+// Initialize data
+loadData();
 
 // ➤ Add student manually
 app.post("/add-student", (req, res) => {
@@ -90,14 +131,20 @@ app.post("/add-student", (req, res) => {
     // Sanitize name (remove potential HTML/script tags)
     const sanitizedName = name.replace(/<[^>]*>?/gm, "").trim();
     
-    // Mass Assignment Fix: Explicitly define properties
     const student = {
       name: sanitizedName,
-      student_id: otherDetails.student_id ? String(otherDetails.student_id) : undefined,
-      email: otherDetails.email ? String(otherDetails.email) : undefined
+      student_id: otherDetails.student_id ? String(otherDetails.student_id) : `S-${Date.now()}`,
+      email: otherDetails.email || undefined,
+      department: otherDetails.department || undefined,
+      gpa: otherDetails.gpa || undefined,
+      major: otherDetails.major || undefined,
+      phone: otherDetails.phone || undefined,
+      year: otherDetails.year || undefined,
+      timestamp: new Date().toISOString()
     };
     
     students.push(student);
+    saveData();
     res.json({ message: "Student Added", total: students.length });
   } catch (err) {
     res.status(500).json({ error: "Internal server error" });
@@ -106,36 +153,37 @@ app.post("/add-student", (req, res) => {
 
 // ➤ Get all students
 app.get("/students", (req, res) => {
-  console.log('GET /students - count:', students.length);
   res.json(students);
 });
 
-// ➤ Upload CSV - SIMPLIFIED for debugging
+// ➤ Upload CSV
 app.post("/upload-csv", upload.single("file"), (req, res) => {
-  console.log('Upload received:', req.file ? req.file.filename : 'NO FILE');
-  
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
 
-  students = []; // reset
+  const newStudents = [];
 
   fs.createReadStream(req.file.path)
     .pipe(csv())
     .on("data", (row) => {
-      console.log('Parsed row:', row);
-      students.push(row);
+      // Basic cleaning
+      if (row.name) {
+        newStudents.push(row);
+      }
     })
     .on("end", () => {
-      console.log('CSV parse complete, students:', students.length);
+      // Choose whether to append or replace. Let's merge for better UX.
+      students = [...students, ...newStudents];
+      saveData();
+      
       // Cleanup
       fs.unlink(req.file.path, (err) => {
         if (err) console.error('Cleanup error:', err);
       });
-      res.json({ message: "CSV Uploaded Successfully", count: students.length });
+      res.json({ message: "CSV Data Synchronized", count: students.length });
     })
     .on("error", (err) => {
-      console.error('CSV parse error:', err);
       res.status(500).json({ error: "CSV parse error: " + err.message });
     });
 });

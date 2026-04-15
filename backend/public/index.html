@@ -3,267 +3,201 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Campus Compass</title>
+  <title>Campus Compass | Intelligence Portal</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>">
+  
+  <!-- Analytics Engine -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-  <!-- Header -->
   <header class="header">
     <div class="header-content">
       <div class="logo">
         <span class="logo-icon">🧭</span>
         <span class="logo-text">Campus Compass</span>
       </div>
-      <div class="header-badge">Student Portal</div>
+      
+      <!-- Tab Navigation -->
+      <nav class="nav-tabs">
+        <button id="tab-manage" class="tab-btn active">Management</button>
+        <button id="tab-analytics" class="tab-btn">Intelligence</button>
+      </nav>
+
+      <div class="header-badge">Executive Portal</div>
     </div>
   </header>
 
   <main class="main">
 
-    <!-- Stats Bar -->
-    <div class="stats-bar">
-      <div class="stat-item">
-        <span class="stat-number" id="stat-total">0</span>
-        <span class="stat-label">Total Students</span>
+    <!-- View: Management -->
+    <div id="view-manage" class="view-content active">
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="stat-number" id="stat-total">0</span>
+          <span class="stat-label">Total Students</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number" id="stat-search-results">—</span>
+          <span class="stat-label">Records Synced</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">✓</span>
+          <span class="stat-label">Secure Access</span>
+        </div>
       </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <span class="stat-number" id="stat-search-results">—</span>
-        <span class="stat-label">Search Results</span>
+
+      <div class="grid">
+        <div class="card card-wide">
+          <div class="card-header">
+            <span class="card-icon">👤</span>
+            <div>
+              <h2 class="card-title">Full Enrollment</h2>
+              <p class="card-subtitle">Complete student profile registration</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="registration-grid">
+              <div class="input-group">
+                <label class="input-label">Full Name</label>
+                <input id="name" class="input" placeholder="e.g. Javin Trivedi" />
+              </div>
+              <div class="input-group">
+                <label class="input-label">Student ID</label>
+                <input id="student_id" class="input" placeholder="e.g. 2024001" />
+              </div>
+              <div class="input-group">
+                <label class="input-label">Email Address</label>
+                <input id="email" class="input" placeholder="e.g. name@university.edu" />
+              </div>
+              <div class="input-group">
+                <label class="input-label">Department</label>
+                <input id="department" class="input" placeholder="e.g. Computer Science" />
+              </div>
+              <div class="input-group">
+                <label class="input-label">Major</label>
+                <input id="major" class="input" placeholder="e.g. Software Engineering" />
+              </div>
+              <div class="input-group">
+                <label class="input-label">GPA</label>
+                <input id="gpa" class="input" placeholder="e.g. 3.8" />
+              </div>
+              <div class="input-group">
+                <label class="input-label">Phone Number</label>
+                <input id="phone" class="input" placeholder="e.g. 555-0101" />
+              </div>
+              <div class="input-group">
+                <label class="input-label">Year</label>
+                <select id="year" class="input select-input">
+                  <option value="Freshman">Freshman</option>
+                  <option value="Sophomore">Sophomore</option>
+                  <option value="Junior">Junior</option>
+                  <option value="Senior">Senior</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="add-btn">Enroll Student</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">📁</span>
+            <div>
+              <h2 class="card-title">Data Ingestion</h2>
+              <p class="card-subtitle">Bulk import via CSV</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="file-drop" id="file-drop-zone">
+              <span class="file-drop-icon">📤</span>
+              <span class="file-drop-text" id="file-drop-text">Click to Upload CSV</span>
+              <input type="file" id="file" accept=".csv" style="display:none">
+            </div>
+            <button class="btn btn-secondary" id="sync-btn">Sync Data</button>
+          </div>
+        </div>
+
+        <div class="card card-wide">
+          <div class="card-header">
+            <span class="card-icon">🔎</span>
+            <div>
+              <h2 class="card-title">Search Engine</h2>
+              <p class="card-subtitle">Query central database</p>
+            </div>
+          </div>
+          <div class="card-body search-body">
+            <div class="input-group search-input-group">
+              <input id="search-input" class="input" placeholder="Search by name..." />
+            </div>
+            <div class="search-actions">
+              <button class="btn btn-primary" id="search-btn">Execute</button>
+              <button class="btn btn-secondary" id="reset-btn">Reset</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <span class="stat-number">✓</span>
-        <span class="stat-label">System Online</span>
+
+      <div class="results-section" id="results-section" style="display:none">
+        <div class="results-header">
+          <h3 class="results-title">Student Ledger</h3>
+          <span class="results-count" id="results-count">0 Records</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="table" id="student-table">
+            <thead id="table-head"></thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <div class="grid">
-
-      <!-- Add Student Card -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-icon">👤</span>
-          <div>
-            <h2 class="card-title">Add Student</h2>
-            <p class="card-subtitle">Register a new student manually</p>
+    <!-- View: Analytics -->
+    <div id="view-analytics" class="view-content">
+      <div class="analytics-grid">
+        <div class="card chart-card">
+          <div class="card-header">
+            <h2 class="card-title">GPA Distribution</h2>
+          </div>
+          <div class="card-body">
+            <canvas id="chart-gpa"></canvas>
           </div>
         </div>
-        <div class="card-body">
-          <div class="input-group">
-            <label class="input-label" for="name">Student Name</label>
-            <input id="name" class="input" placeholder="e.g. Javin Trivedi" />
+        <div class="card chart-card">
+          <div class="card-header">
+            <h2 class="card-title">Departmental Breakdown</h2>
           </div>
-          <button class="btn btn-primary" id="add-btn" onclick="addStudent()">
-            <span>Add Student</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Upload CSV Card -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-icon">📁</span>
-          <div>
-            <h2 class="card-title">Upload CSV</h2>
-            <p class="card-subtitle">Bulk import student records</p>
+          <div class="card-body">
+            <canvas id="chart-dept"></canvas>
           </div>
         </div>
-        <div class="card-body">
-          <button class="file-drop" id="file-drop" type="button" aria-label="Upload CSV file" onclick="document.getElementById('file').click()">
-            <span class="file-drop-icon">⬆️</span>
-            <span class="file-drop-text" id="file-drop-text">Click to select a CSV file</span>
-            <input type="file" id="file" accept=".csv" style="display:none" onchange="onFileSelected(this)">
-          </button>
-          <p class="help-text">Columns: name, student_id, email, department, gpa, major, phone, year &nbsp;·&nbsp; <a href="sample-students.csv" download class="link">Download Sample</a></p>
-          <button class="btn btn-primary" onclick="uploadCSV()">
-            <span>Upload CSV</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Search Card -->
-      <div class="card card-wide">
-        <div class="card-header">
-          <span class="card-icon">🔍</span>
-          <div>
-            <h2 class="card-title">Search Students</h2>
-            <p class="card-subtitle">Find student records instantly</p>
+        <div class="card chart-card card-wide">
+          <div class="card-header">
+            <h2 class="card-title">Enrolment by Year</h2>
+          </div>
+          <div class="card-body chart-wide-body">
+            <canvas id="chart-year"></canvas>
           </div>
         </div>
-        <div class="card-body search-body">
-          <div class="input-group search-input-group">
-            <label class="input-label" for="search">Search by Name</label>
-            <input id="search" class="input" placeholder="e.g. Javin Trivedi" onkeydown="if(event.key==='Enter') searchStudent()" />
-          </div>
-          <div class="search-actions">
-            <button class="btn btn-primary" onclick="searchStudent()">Search</button>
-            <button class="btn btn-secondary" onclick="getStudents()">Show All</button>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Results Table -->
-    <div class="results-section" id="results-section" style="display:none">
-      <div class="results-header">
-        <h3 class="results-title">Student Records</h3>
-        <span class="results-count" id="results-count">0 results</span>
-      </div>
-      <div class="table-wrapper">
-        <table class="table" id="student-table">
-          <thead id="table-head"></thead>
-          <tbody id="table-body"></tbody>
-        </table>
-      </div>
-      <div class="empty-state" id="empty-state" style="display:none">
-        <span style="font-size:3rem">🔍</span>
-        <p>No students found. Try a different search.</p>
       </div>
     </div>
 
-    <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
 
   </main>
 
   <footer class="footer">
-    <p>Campus Compass · Powered by Node.js, Docker & Kubernetes on AWS</p>
+    <p>© 2026 Campus Compass • Data Integrity Enabled</p>
   </footer>
 
-  <script>
-    // Toast notification
-      console.error('Toast Error:', message, err);
-      toast.textContent = message;
-      toast.className = `toast toast-${type} show`;
-      setTimeout(() => toast.classList.remove('show'), 3000);
-    }
-
-    // File input label
-    function onFileSelected(input) {
-      const text = document.getElementById('file-drop-text');
-      text.textContent = input.files[0] ? `📄 ${input.files[0].name}` : 'Click to select a CSV file';
-    }
-
-    // Add student
-    async function addStudent() {
-      const nameInput = document.getElementById('name');
-      const name = nameInput.value.trim();
-      if (!name) { showToast('Please enter a student name', 'error'); return; }
-      const btn = document.getElementById('add-btn');
-      btn.disabled = true; btn.querySelector('span').textContent = 'Adding…';
-      try {
-        await fetch('/add-student', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
-        showToast('Student added successfully ✅');
-        nameInput.value = '';
-        getStudents();
-      } catch (err) {
-        console.error('Add student error:', err);
-        showToast('Error adding student', 'error');
-      } finally {
-        btn.disabled = false; btn.querySelector('span').textContent = 'Add Student';
-      }
-    }
-
-    // Upload CSV
-    async function uploadCSV() {
-      const fileInput = document.getElementById('file');
-      const file = fileInput.files[0];
-      if (!file) { showToast('Please select a CSV file', 'error'); return; }
-      const formData = new FormData();
-      formData.append('file', file);
-      try {
-        await fetch('/upload-csv', { method: 'POST', body: formData });
-        showToast('CSV uploaded successfully ✅');
-        fileInput.value = '';
-        document.getElementById('file-drop-text').textContent = 'Click to select a CSV file';
-        getStudents();
-      } catch (err) {
-        showToast('Upload error: ' + err.message, 'error');
-      }
-    }
-
-    // Get all students
-    async function getStudents() {
-      try {
-        const res = await fetch('/students');
-        const data = await res.json();
-        document.getElementById('stat-search-results').textContent = data.length;
-        displayStudents(data);
-      } catch (err) {
-        console.error('Fetch error:', err);
-        showToast('Error fetching students', 'error');
-      }
-    }
-
-    // Search student
-    async function searchStudent() {
-      const name = document.getElementById('search').value.trim();
-      if (!name) { showToast('Enter a name to search', 'error'); return; }
-      try {
-        const res = await fetch(`/search?name=${encodeURIComponent(name)}`);
-        const data = await res.json();
-        document.getElementById('stat-search-results').textContent = data.length;
-        displayStudents(data);
-      } catch (err) {
-        console.error('Search error:', err);
-        showToast('Search error', 'error');
-      }
-    }
-
-    // Display students in a table
-    function displayStudents(data) {
-      const section = document.getElementById('results-section');
-      const thead = document.getElementById('table-head');
-      const tbody = document.getElementById('table-body');
-      const emptyState = document.getElementById('empty-state');
-      const table = document.getElementById('student-table');
-      const count = document.getElementById('results-count');
-
-      section.style.display = 'block';
-      const resultsText = data.length === 1 ? 'result' : 'results';
-      count.textContent = `${data.length} ${resultsText}`;
-
-      if (data.length === 0) {
-        table.style.display = 'none';
-        emptyState.style.display = 'flex';
-        return;
-      }
-
-      table.style.display = 'table';
-      emptyState.style.display = 'none';
-
-      const keys = Object.keys(data[0]);
-      
-      // Fixed: Avoid nested template literals for SonarCloud/Maintainability
-      const headerHtml = keys.map(k => {
-        const title = k.replaceAll('_', ' ');
-        return `<th>${title}</th>`;
-      }).join('');
-      
-      thead.innerHTML = `<tr>${headerHtml}</tr>`;
-      
-      const rowsHtml = data.map(s => {
-        const cells = keys.map(k => `<td>${s[k] ?? '—'}</td>`).join('');
-        return `<tr>${cells}</tr>`;
-      }).join('');
-      
-      tbody.innerHTML = rowsHtml;
-
-      // Update stat
-      document.getElementById('stat-total').textContent = data.length;
-    }
-
-    // Load students on page load
-    getStudents();
-  </script>
-
+  <script src="app.js"></script>
 </body>
 </html>

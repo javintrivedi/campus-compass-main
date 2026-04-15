@@ -1,4 +1,4 @@
-name: CI/CD Pipeline to EC2
+name: CI/CD Pipeline to AWS ECS
 
 on:
   push:
@@ -23,40 +23,52 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   deploy:
+    name: Build & Deploy to ECS
     runs-on: ubuntu-latest
+    needs: sonarcloud
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Deploy to EC2 via SSH and Rsync
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            # Create working directory if it doesn't exist
-            mkdir -p /opt/campus-compass
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-      - name: Sync files manually using pure SSH
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, Tag, and Push Image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: campus-compass-app
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
-          rsync -avz --exclude='.git' --exclude='aws_infra' --exclude='.github' --exclude='terraform*' --delete -e "ssh -o StrictHostKeyChecking=no" ./ ubuntu@${{ secrets.EC2_HOST }}:/opt/campus-compass/
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Build Docker Image & Apply Kubernetes Manfest
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Download Task Definition
+        run: |
+          aws ecs describe-task-definition --task-definition campus-compass-task --query taskDefinition > task-definition.json
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /opt/campus-compass
-            sudo docker build -t campus-compass:latest .
-            sudo docker save campus-compass:latest | sudo k3s ctr images import -
-            export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-            sudo kubectl apply -f k8s/
-            sudo kubectl rollout restart deployment campus-compass
-            sudo kubectl get pods
+          task-definition: task-definition.json
+          container-name: app
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: campus-compass-service
+          cluster: campus-compass-cluster
+          wait-for-service-stability: true
