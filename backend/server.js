@@ -58,7 +58,11 @@ app.use(helmet({
   },
   hsts: false, // Disabling HSTS to prevent forced HTTPS on local IPs
 }));
-app.use(cors());
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS || "*", 
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 // Rate limiting
 const limiter = rateLimit({

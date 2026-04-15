@@ -124,5 +124,59 @@
     "phone": "",
     "year": "Freshman",
     "timestamp": "2026-04-15T20:26:28.906Z"
+  },
+  {
+    "name": "Test Student",
+    "student_id": "TEST001",
+    "email": "test@university.edu",
+    "department": "Computer Science",
+    "major": "Security",
+    "gpa": 3.9,
+    "phone": "555-9999",
+    "year": "Senior",
+    "timestamp": "2026-04-15T20:32:31.747Z"
+  },
+  {
+    "name": "Hacker",
+    "student_id": "HACK001",
+    "email": "",
+    "department": "General",
+    "major": "Undeclared",
+    "gpa": 0,
+    "phone": "",
+    "year": "Freshman",
+    "timestamp": "2026-04-15T20:32:31.750Z"
+  },
+  {
+    "name": "Test Student",
+    "student_id": "TEST001",
+    "email": "test@university.edu",
+    "department": "Computer Science",
+    "major": "Security",
+    "gpa": 3.9,
+    "phone": "555-9999",
+    "year": "Senior",
+    "timestamp": "2026-04-15T20:34:22.035Z"
+  },
+  {
+    "name": "Hacker",
+    "student_id": "HACK001",
+    "email": "",
+    "department": "General",
+    "major": "Undeclared",
+    "gpa": 0,
+    "phone": "",
+    "year": "Freshman",
+    "timestamp": "2026-04-15T20:34:22.038Z"
+  },
+  {
+    "name": "Jane Smith",
+    "student_id": "2024005",
+    "email": "jane@univ.edu",
+    "department": "Science",
+    "gpa": "3.9",
+    "major": "Bio",
+    "phone": "555-0005",
+    "year": "Junior"
   }
 ]

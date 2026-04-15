@@ -78,7 +78,14 @@ describe('Campus Compass Backend API', () => {
 
     describe('GET /search', () => {
         it('should return filtered students by name', async () => {
-            const res = await request(app).get('/search?name=John');
+            const res = await request(app).get('/search?name=Test');
+            expect(res.status).to.equal(200);
+            expect(res.body).to.be.an('array');
+            expect(res.body[0].name).to.include('Test');
+        });
+
+        it('should handle special characters in search', async () => {
+            const res = await request(app).get('/search?name=%20');
             expect(res.status).to.equal(200);
             expect(res.body).to.be.an('array');
         });
@@ -87,6 +94,29 @@ describe('Campus Compass Backend API', () => {
             const res = await request(app).get('/search?name=');
             expect(res.status).to.equal(200);
             expect(res.body).to.be.an('array');
+        });
+    });
+
+    describe('POST /upload-csv', () => {
+        it('should reject requests without a file', async () => {
+            const res = await request(app).post('/upload-csv');
+            expect(res.status).to.equal(400);
+            expect(res.body.error).to.equal('No file uploaded');
+        });
+
+        it('should successfully process a valid CSV file', async () => {
+            const csvContent = 'name,student_id,email,department,gpa,major,phone,year\nJane Smith,2024005,jane@univ.edu,Science,3.9,Bio,555-0005,Junior';
+            const tempFilePath = path.join(__dirname, 'test_students.csv');
+            fs.writeFileSync(tempFilePath, csvContent);
+
+            const res = await request(app)
+                .post('/upload-csv')
+                .attach('file', tempFilePath);
+            
+            expect(res.status).to.equal(200);
+            expect(res.body.message).to.include('CSV Data Synchronized');
+            
+            fs.unlinkSync(tempFilePath); // Cleanup
         });
     });
 

@@ -14,6 +14,22 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Backend Dependencies
+        run: cd backend && npm install
+
+      - name: Run Tests with Coverage
+        run: |
+          cd backend
+          npm test
+          # Correct the lcov paths so SonarCloud (running from root) can find them
+          sed -i 's|SF:|SF:backend/|g' coverage/lcov.info
+          cat coverage/lcov.info | head -n 20
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v3.0.0
         with:
