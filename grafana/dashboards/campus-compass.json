@@ -1,0 +1,166 @@
+{
+  "title": "Campus Compass — Live Metrics",
+  "uid": "campus-compass-main",
+  "timezone": "browser",
+  "refresh": "15s",
+  "schemaVersion": 38,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Total HTTP Requests",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "options": { "colorMode": "background", "graphMode": "area", "textMode": "auto" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "green", "value": null }] }
+        }
+      },
+      "targets": [{
+        "datasource": "Prometheus",
+        "expr": "sum(http_requests_total)",
+        "legendFormat": "Total"
+      }]
+    },
+    {
+      "id": 2,
+      "title": "Requests Per Second",
+      "type": "stat",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "options": { "colorMode": "background", "graphMode": "area" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "blue", "value": null }, { "color": "red", "value": 10 }] }
+        }
+      },
+      "targets": [{
+        "datasource": "Prometheus",
+        "expr": "sum(rate(http_requests_total[1m]))",
+        "legendFormat": "req/s"
+      }]
+    },
+    {
+      "id": 3,
+      "title": "Node.js Heap Memory Used (MB)",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "options": { "colorMode": "background", "graphMode": "area" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 100 }, { "color": "red", "value": 200 }] }
+        }
+      },
+      "targets": [{
+        "datasource": "Prometheus",
+        "expr": "nodejs_heap_size_used_bytes / 1024 / 1024",
+        "legendFormat": "Heap Used"
+      }]
+    },
+    {
+      "id": 4,
+      "title": "Active Handles (Open Connections)",
+      "type": "stat",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "options": { "colorMode": "background", "graphMode": "area" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "green", "value": null }] }
+        }
+      },
+      "targets": [{
+        "datasource": "Prometheus",
+        "expr": "nodejs_active_handles_total",
+        "legendFormat": "Handles"
+      }]
+    },
+    {
+      "id": 5,
+      "title": "HTTP Traffic Over Time (by Route)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 4, "w": 16, "h": 8 },
+      "options": { "tooltip": { "mode": "multi" } },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "short"
+        }
+      },
+      "targets": [{
+        "datasource": "Prometheus",
+        "expr": "rate(http_requests_total[1m])",
+        "legendFormat": "{{method}} {{route}} ({{status_code}})"
+      }]
+    },
+    {
+      "id": 6,
+      "title": "Requests by Route",
+      "type": "piechart",
+      "gridPos": { "x": 16, "y": 4, "w": 8, "h": 8 },
+      "options": { "pieType": "donut", "displayLabels": ["name", "percent"] },
+      "targets": [{
+        "datasource": "Prometheus",
+        "expr": "sum by(route) (http_requests_total)",
+        "legendFormat": "{{route}}"
+      }]
+    },
+    {
+      "id": 7,
+      "title": "Node.js Memory Over Time",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 7 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": { "lineWidth": 2, "fillOpacity": 15 }
+        }
+      },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "nodejs_heap_size_used_bytes",
+          "legendFormat": "Heap Used"
+        },
+        {
+          "datasource": "Prometheus",
+          "expr": "nodejs_heap_size_total_bytes",
+          "legendFormat": "Heap Total"
+        },
+        {
+          "datasource": "Prometheus",
+          "expr": "nodejs_external_memory_bytes",
+          "legendFormat": "External"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "HTTP Status Code Breakdown",
+      "type": "bargauge",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 7 },
+      "options": { "orientation": "horizontal", "displayMode": "gradient" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 100 }
+            ]
+          }
+        }
+      },
+      "targets": [{
+        "datasource": "Prometheus",
+        "expr": "sum by(status_code) (http_requests_total)",
+        "legendFormat": "HTTP {{status_code}}"
+      }]
+    }
+  ]
+}

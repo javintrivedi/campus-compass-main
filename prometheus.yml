@@ -4,4 +4,4 @@ global:
 scrape_configs:
   - job_name: 'campus_compass_app'
     static_configs:
-      - targets: ['172.20.10.2:9000']
+      - targets: ['campus-compass:9000']
